@@ -423,6 +423,90 @@
             color: #333;
         }
 
+        /* ==================== AUDIO PLAYER & PREVIEW ==================== */
+
+        .audio-player {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .audio-player h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .player-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .player-controls input[type="file"] {
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .player-controls button {
+            padding: 8px 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .player-controls button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .player-controls button:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .progress-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: var(--primary);
+            min-width: 100px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
         /* ==================== TIMELINE MEJORADO ==================== */
 
         .timeline-container {
@@ -452,11 +536,15 @@
             display: flex;
             gap: 0;
             position: relative;
-            height: 80px;
+            height: 100px;
             border: 2px solid var(--border);
             border-radius: 6px;
             background: linear-gradient(90deg, transparent 0%, transparent calc(100% - 1px), var(--border) calc(100% - 1px));
             margin-bottom: 15px;
+        }
+
+        .timeline-track.playing {
+            background: linear-gradient(90deg, #f0f0f0 0%, #f0f0f0 calc(100% - 1px), var(--border) calc(100% - 1px));
         }
 
         .timeline-segment {
@@ -474,7 +562,7 @@
         .timeline-event {
             position: absolute;
             width: 50px;
-            height: 60px;
+            height: 80px;
             border-radius: 6px;
             border: 2px solid rgba(0,0,0,0.2);
             display: flex;
@@ -502,6 +590,12 @@
         .timeline-event.dragging {
             opacity: 0.7;
             z-index: 1000;
+        }
+
+        .timeline-event.current {
+            border: 3px solid white;
+            box-shadow: 0 0 15px rgba(255,255,255,0.8), 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 100;
         }
 
         .timeline-time {
@@ -544,6 +638,26 @@
 
         .timeline-info strong {
             color: var(--primary);
+        }
+
+        /* ==================== COLOR PREVIEW ==================== */
+
+        .color-preview {
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            background: rgb(255, 0, 0);
+            transition: background-color 0.1s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+
+        .color-info {
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 0.9em;
         }
 
         /* ==================== CONSOLA ==================== */
@@ -639,6 +753,15 @@
             .timeline-mark {
                 flex: 0 0 40px;
                 font-size: 0.75em;
+            }
+
+            .player-controls {
+                flex-direction: column;
+            }
+
+            .player-controls input[type="file"],
+            .player-controls button {
+                width: 100%;
             }
         }
 
@@ -900,23 +1023,47 @@
             </div>
         </div>
 
-        <!-- TIMELINE MEJORADO -->
+        <!-- TIMELINE MEJORADO CON AUDIO -->
         <div class="panel timeline">
-            <h2>⏱️ Timeline MP3 & Sincronización Avanzada</h2>
+            <h2>⏱️ Timeline MP3 & Sincronización en Vivo</h2>
             
             <div class="timeline-controls">
-                <input type="file" id="audioFile" accept=".mp3">
+                <input type="file" id="audioFile" accept=".mp3,.wav,.ogg">
                 <input type="file" id="timelineFile" accept=".json">
-                <button class="btn btn-small" onclick="loadTimeline()">Cargar Timeline</button>
-                <button class="btn btn-small" onclick="playTimeline()">Reproducir</button>
+                <button class="btn btn-small" onclick="loadTimelineFile()">Cargar Timeline</button>
                 <button class="btn btn-small" onclick="saveTimeline()">Guardar</button>
                 <button class="btn btn-small" onclick="clearTimeline()">Limpiar</button>
+            </div>
+
+            <!-- REPRODUCTOR DE AUDIO -->
+            <div class="audio-player">
+                <h4>🎵 Reproductor de Audio</h4>
+                <audio id="audioPlayer" style="width: 100%; margin-bottom: 10px;"></audio>
+                <div class="player-controls">
+                    <button onclick="playAudio()" id="playBtn">▶ Reproducir</button>
+                    <button onclick="pauseAudio()" id="pauseBtn" disabled>⏸ Pausar</button>
+                    <button onclick="stopAudio()" id="stopBtn" disabled>⏹ Detener</button>
+                    <span class="time-display"><span id="currentTime">0:00</span> / <span id="duration">0:00</span></span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar" onclick="seekAudio(event)">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PREVIEW DE COLOR EN VIVO -->
+            <div style="margin-bottom: 15px;">
+                <div class="color-preview" id="colorPreview"></div>
+                <div class="color-info">
+                    Próximo evento: <span id="nextEventInfo">Ninguno</span>
+                </div>
             </div>
 
             <div class="timeline-info">
                 <p><strong>Duración Total:</strong> <span id="timeline-duration">0:00</span></p>
                 <p><strong>Eventos:</strong> <span id="timeline-event-count">0</span></p>
-                <p><strong>Instrucciones:</strong> Arrastra colores o efectos al timeline para añadirlos en un tiempo específico</p>
+                <p><strong>Instrucciones:</strong> Arrastra colores al timeline, carga música para ver sincronización en vivo</p>
             </div>
 
             <div class="timeline-container">
@@ -945,7 +1092,7 @@
     </div>
 
     <script>
-        // ==================== CAPELLÁN LED - APP.JS MEJORADO ====================
+        // ==================== CAPELLÁN LED - APP.JS MEJORADO V2 ====================
 
         // Variables globales
         let port = null;
@@ -954,8 +1101,158 @@
         let isConnected = false;
         let currentDevice = 'capellan';
         let timelineEvents = [];
-        let timelineDuration = 300; // 5 minutos por defecto (300 segundos)
+        let timelineDuration = 300;
         let draggedColor = null;
+        let audioPlayer = null;
+        let isPlaying = false;
+        let animationFrameId = null;
+
+        // ==================== AUDIO PLAYER ====================
+
+        function setupAudioPlayer() {
+            audioPlayer = document.getElementById('audioPlayer');
+            
+            audioPlayer.addEventListener('loadedmetadata', function() {
+                timelineDuration = Math.ceil(audioPlayer.duration);
+                initTimeline();
+                updateTimelineInfo();
+                document.getElementById('duration').textContent = formatTime(audioPlayer.duration);
+                logConsole(`✓ Audio cargado: ${formatTime(audioPlayer.duration)}`);
+            });
+
+            audioPlayer.addEventListener('play', function() {
+                isPlaying = true;
+                document.getElementById('playBtn').disabled = true;
+                document.getElementById('pauseBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('timeline-track').classList.add('playing');
+                updateTimelineAnimation();
+            });
+
+            audioPlayer.addEventListener('pause', function() {
+                isPlaying = false;
+                document.getElementById('playBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('timeline-track').classList.remove('playing');
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+            });
+
+            audioPlayer.addEventListener('timeupdate', function() {
+                updateProgress();
+                updateCurrentColor();
+            });
+
+            audioPlayer.addEventListener('ended', function() {
+                stopAudio();
+            });
+        }
+
+        function playAudio() {
+            if (audioPlayer && audioPlayer.src) {
+                audioPlayer.play();
+            } else {
+                logConsole('✗ Carga un archivo de audio primero');
+            }
+        }
+
+        function pauseAudio() {
+            if (audioPlayer) {
+                audioPlayer.pause();
+            }
+        }
+
+        function stopAudio() {
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+                isPlaying = false;
+                document.getElementById('playBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('timeline-track').classList.remove('playing');
+                updateProgress();
+                updateCurrentColor();
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+            }
+        }
+
+        function seekAudio(event) {
+            if (audioPlayer && audioPlayer.duration) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const percentage = x / rect.width;
+                audioPlayer.currentTime = percentage * audioPlayer.duration;
+            }
+        }
+
+        function updateProgress() {
+            if (audioPlayer && audioPlayer.duration) {
+                const percentage = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                document.getElementById('progressFill').style.width = percentage + '%';
+                document.getElementById('currentTime').textContent = formatTime(audioPlayer.currentTime);
+            }
+        }
+
+        function updateCurrentColor() {
+            if (audioPlayer) {
+                const currentTime = audioPlayer.currentTime;
+                
+                // Encontrar el evento actual y el próximo
+                let currentEvent = null;
+                let nextEvent = null;
+                
+                for (let event of timelineEvents) {
+                    if (event.time <= currentTime) {
+                        currentEvent = event;
+                    }
+                    if (event.time > currentTime && !nextEvent) {
+                        nextEvent = event;
+                    }
+                }
+                
+                // Actualizar preview de color
+                if (currentEvent) {
+                    const color = `rgb(${currentEvent.r}, ${currentEvent.g}, ${currentEvent.b})`;
+                    document.getElementById('colorPreview').style.backgroundColor = color;
+                    
+                    if (isConnected) {
+                        sendCommand(`COLOR|${currentEvent.r}|${currentEvent.g}|${currentEvent.b}`);
+                    }
+                }
+                
+                // Mostrar próximo evento
+                if (nextEvent) {
+                    document.getElementById('nextEventInfo').textContent = 
+                        `COLOR en ${formatTime(nextEvent.time)} (en ${formatTime(nextEvent.time - currentTime)})`;
+                } else {
+                    document.getElementById('nextEventInfo').textContent = 'Fin';
+                }
+                
+                // Actualizar evento actual en timeline
+                document.querySelectorAll('.timeline-event').forEach(el => {
+                    el.classList.remove('current');
+                });
+                if (currentEvent) {
+                    document.querySelectorAll('.timeline-event').forEach(el => {
+                        if (el.dataset.eventId == currentEvent.id) {
+                            el.classList.add('current');
+                        }
+                    });
+                }
+            }
+        }
+
+        function updateTimelineAnimation() {
+            updateProgress();
+            updateCurrentColor();
+            if (isPlaying) {
+                animationFrameId = requestAnimationFrame(updateTimelineAnimation);
+            }
+        }
 
         // ==================== TIMELINE ====================
 
@@ -963,7 +1260,6 @@
             const timeline = document.getElementById('timeline-ruler-marks');
             timeline.innerHTML = '';
             
-            // Crear marcas cada 10 segundos
             for (let i = 0; i <= timelineDuration; i += 10) {
                 const mark = document.createElement('div');
                 mark.className = 'timeline-mark';
@@ -977,7 +1273,7 @@
 
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
+            const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
@@ -1014,7 +1310,6 @@
             const rect = timeline.getBoundingClientRect();
             const x = event.clientX - rect.left;
             
-            // Calcular tiempo basado en posición
             const percentage = x / rect.width;
             const time = Math.round(percentage * timelineDuration);
             
@@ -1040,7 +1335,7 @@
             
             renderTimelineEvents();
             updateTimelineInfo();
-            logConsole(`✓ Evento agregado: COLOR|${color.r}|${color.g}|${color.b} @ ${formatTime(time)}`);
+            logConsole(`✓ Evento: COLOR|${color.r}|${color.g}|${color.b} @ ${formatTime(time)}`);
         }
 
         function renderTimelineEvents() {
@@ -1052,9 +1347,10 @@
             timelineEvents.forEach(event => {
                 const eventEl = document.createElement('div');
                 eventEl.className = 'timeline-event';
+                eventEl.dataset.eventId = event.id;
                 eventEl.style.backgroundColor = `rgb(${event.r}, ${event.g}, ${event.b})`;
                 eventEl.style.left = `${(event.time / timelineDuration) * trackWidth}px`;
-                eventEl.style.marginLeft = '-25px'; // Centrar el elemento
+                eventEl.style.marginLeft = '-25px';
                 eventEl.innerHTML = `<span style="font-size: 0.7em;">${formatTime(event.time)}</span>`;
                 eventEl.draggable = true;
                 eventEl.ondragstart = (e) => dragTimelineEvent(e, event.id);
@@ -1093,13 +1389,48 @@
         }
 
         function clearTimeline() {
-            if (confirm('¿Estás seguro de que quieres limpiar el timeline?')) {
+            if (confirm('¿Estás seguro?')) {
                 timelineEvents = [];
                 renderTimelineEvents();
                 updateTimelineInfo();
                 logConsole(`✓ Timeline limpiado`);
             }
         }
+
+        function loadTimelineFile() {
+            const input = document.getElementById('timelineFile');
+            input.click();
+            input.onchange = function() {
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        timelineEvents = data.events;
+                        timelineDuration = data.duration;
+                        initTimeline();
+                        renderTimelineEvents();
+                        logConsole(`✓ Timeline cargado (${timelineEvents.length} eventos)`);
+                    } catch (err) {
+                        logConsole(`✗ Error al cargar timeline: ${err.message}`);
+                    }
+                };
+                reader.readAsText(file);
+            };
+        }
+
+        // Cargar archivo de audio
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioFileInput = document.getElementById('audioFile');
+            audioFileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const url = URL.createObjectURL(file);
+                    audioPlayer.src = url;
+                    logConsole(`✓ Audio: ${file.name}`);
+                }
+            });
+        });
 
         // ==================== SELECTOR DE DISPOSITIVO ====================
 
@@ -1135,20 +1466,14 @@
                 
                 readSerialData();
             } catch (error) {
-                logConsole("✗ Error de conexión: " + error.message);
+                logConsole("✗ Error: " + error.message);
             }
         }
 
         async function disconnectSerial() {
-            if (reader) {
-                await reader.cancel();
-            }
-            if (writer) {
-                await writer.close();
-            }
-            if (port) {
-                await port.close();
-            }
+            if (reader) await reader.cancel();
+            if (writer) await writer.close();
+            if (port) await port.close();
             
             isConnected = false;
             updateConnectionStatus(false);
@@ -1159,7 +1484,6 @@
             while (isConnected) {
                 try {
                     const { value, done } = await reader.read();
-                    
                     if (done) break;
                     
                     const text = new TextDecoder().decode(value);
@@ -1175,16 +1499,13 @@
 
         async function sendCommand(command) {
             if (!isConnected || !writer) {
-                logConsole("✗ No conectado");
                 return;
             }
             
             try {
-                const msg = command + "\n";
-                await writer.write(new TextEncoder().encode(msg));
-                logConsole("→ " + command);
+                await writer.write(new TextEncoder().encode(command + "\n"));
             } catch (error) {
-                logConsole("✗ Error al enviar: " + error.message);
+                logConsole("✗ Error: " + error.message);
             }
         }
 
@@ -1274,23 +1595,16 @@
             
             if (command) {
                 sendCommand(command);
+                logConsole("→ " + command);
                 input.value = "";
             }
-        }
-
-        // ==================== TIMELINE FUNCIONES ====================
-
-        function loadTimeline() {
-            logConsole("Timeline: Selecciona un archivo JSON");
-        }
-
-        function playTimeline() {
-            logConsole(`▶ Reproduciendo timeline (${timelineEvents.length} eventos)`);
         }
 
         // ==================== INICIALIZACIÓN ====================
 
         document.addEventListener("DOMContentLoaded", function() {
+            setupAudioPlayer();
+            
             document.getElementById("connectBtn").addEventListener("click", connectSerial);
             document.getElementById("disconnectBtn").addEventListener("click", disconnectSerial);
             
@@ -1308,7 +1622,8 @@
             initTimeline();
             switchDevice('capellan');
             
-            logConsole("🎆 Capellán LED - Panel Profesional - Listo");
+            logConsole("🎆 Capellán LED - Panel Profesional v2.0 - Listo");
+            logConsole("💡 Carga música para ver sincronización en vivo");
         });
     </script>
 </body>
