@@ -1,0 +1,467 @@
+/* ==================== CAPELLÁN LED - ESTILOS ==================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #6C63FF;
+    --primary-dark: #5A52CC;
+    --success: #4CAF50;
+    --danger: #FF5252;
+    --warning: #FFC107;
+    --dark: #1a1a2e;
+    --light: #f4f4f9;
+    --gray: #888;
+    --border: #ddd;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--dark) 0%, #2d2d4a 100%);
+    color: #333;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ==================== HEADER ==================== */
+
+header {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+    padding: 30px 0;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(108, 99, 255, 0.3);
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+/* ==================== PANELS ==================== */
+
+.panel {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.panel:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.panel h2 {
+    color: var(--primary);
+    margin-bottom: 20px;
+    font-size: 1.3em;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 10px;
+}
+
+/* ==================== CONEXIÓN ==================== */
+
+.connection {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.connection h2 {
+    color: white;
+    border-bottom-color: rgba(255,255,255,0.3);
+}
+
+.connection-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.connection-controls select,
+.connection-controls input {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+}
+
+.connection-controls select {
+    flex: 1;
+    min-width: 200px;
+}
+
+.status {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.status.connected {
+    background: var(--success);
+    color: white;
+}
+
+.status.disconnected {
+    background: var(--danger);
+    color: white;
+}
+
+/* ==================== GRID PRINCIPAL ==================== */
+
+.main-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* ==================== COLORES ==================== */
+
+.color-section {
+    margin-bottom: 20px;
+}
+
+.color-section label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: var(--primary);
+}
+
+.color-picker-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.color-picker-container input[type="color"] {
+    width: 80px;
+    height: 50px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.preset-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.preset {
+    width: 100%;
+    height: 50px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.preset:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ==================== RGB INPUTS ==================== */
+
+.rgb-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-group label {
+    min-width: 30px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.input-group input[type="range"] {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, #000, var(--primary));
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.input-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.input-group input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.input-group span {
+    min-width: 50px;
+    text-align: right;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* ==================== BRILLO ==================== */
+
+.brightness input[type="range"] {
+    width: 100%;
+    margin: 20px 0;
+    height: 8px;
+}
+
+.brightness-display {
+    text-align: center;
+    font-size: 1.5em;
+    color: var(--primary);
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* ==================== BOTONES ==================== */
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #FF3838;
+}
+
+.btn-small {
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+
+.btn-effect {
+    width: 100%;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 15px;
+}
+
+.btn-effect:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(108, 99, 255, 0.4);
+}
+
+.btn:disabled {
+    background: var(--gray);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* ==================== STATUS PANEL ==================== */
+
+#statusOutput {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    max-height: 300px;
+    overflow-y: auto;
+    color: #333;
+}
+
+/* ==================== TIMELINE ==================== */
+
+.timeline-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.timeline-controls input[type="file"] {
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    flex: 1;
+    min-width: 200px;
+}
+
+#timelineDisplay {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 6px;
+    min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* ==================== CONSOLA ==================== */
+
+.console {
+    background: #1e1e2e;
+    color: #0f0;
+    font-family: 'Courier New', monospace;
+}
+
+.console h2 {
+    color: #0f0;
+    border-bottom-color: #0f0;
+}
+
+.console-output {
+    background: #0a0a0a;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+#consoleOutput {
+    padding: 15px;
+    max-height: 250px;
+    overflow-y: auto;
+    margin: 0;
+    font-size: 0.85em;
+    line-height: 1.5;
+}
+
+.console-input {
+    display: flex;
+    gap: 10px;
+}
+
+.console-input input {
+    flex: 1;
+    padding: 10px 15px;
+    background: #2a2a3e;
+    border: 1px solid #0f0;
+    border-radius: 6px;
+    color: #0f0;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+}
+
+.console-input input::placeholder {
+    color: rgba(0, 255, 0, 0.5);
+}
+
+.console-input input:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.8em;
+    }
+
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .connection-controls {
+        flex-direction: column;
+    }
+
+    .connection-controls select,
+    .connection-controls button {
+        width: 100%;
+    }
+
+    .preset-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    .panel {
+        padding: 15px;
+    }
+
+    header h1 {
+        font-size: 1.5em;
+    }
+
+    header p {
+        font-size: 1em;
+    }
+}
+
+/* ==================== ANIMACIONES ==================== */
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.connecting {
+    animation: pulse 1s infinite;
+}
