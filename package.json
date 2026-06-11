@@ -1,0 +1,28 @@
+{
+  "name": "capellan-led",
+  "version": "1.0.0",
+  "description": "Control software para LEDs WS2812 con timeline sincronizado a MP3",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cd app && npm run dev",
+    "build": "cd app && npm run build",
+    "start": "cd app && npm start",
+    "firmware:upload": "cd firmware && pio run -t upload",
+    "firmware:monitor": "cd firmware && pio device monitor",
+    "firmware:build": "cd firmware && pio run"
+  },
+  "keywords": [
+    "led",
+    "ws2812",
+    "esp8266",
+    "flow-arts",
+    "timeline",
+    "audio"
+  ],
+  "author": "yrost97-afk",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yrost97-afk/capellan-led.git"
+  }
+}
