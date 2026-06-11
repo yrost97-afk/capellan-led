@@ -1,0 +1,87 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Demo Show",
+    "artist": "Capellán LED",
+    "duration": 30000,
+    "bpm": 128,
+    "audioFile": "demo.mp3"
+  },
+  "events": [
+    {
+      "time": 0,
+      "type": "color",
+      "params": {
+        "r": 255,
+        "g": 0,
+        "b": 0
+      }
+    },
+    {
+      "time": 2000,
+      "type": "brightness",
+      "params": {
+        "level": 200
+      }
+    },
+    {
+      "time": 5000,
+      "type": "effect",
+      "params": {
+        "name": "pulse",
+        "r": 255,
+        "g": 0,
+        "b": 0,
+        "speed": 5
+      }
+    },
+    {
+      "time": 10000,
+      "type": "transition",
+      "params": {
+        "fromR": 255,
+        "fromG": 0,
+        "fromB": 0,
+        "toR": 0,
+        "toG": 255,
+        "toB": 0,
+        "duration": 2000
+      }
+    },
+    {
+      "time": 12500,
+      "type": "effect",
+      "params": {
+        "name": "theater",
+        "r": 0,
+        "g": 255,
+        "b": 0,
+        "speed": 50
+      }
+    },
+    {
+      "time": 20000,
+      "type": "effect",
+      "params": {
+        "name": "rainbow",
+        "speed": 20
+      }
+    },
+    {
+      "time": 25000,
+      "type": "color",
+      "params": {
+        "r": 0,
+        "g": 0,
+        "b": 255
+      }
+    },
+    {
+      "time": 27000,
+      "type": "brightness",
+      "params": {
+        "level": 0
+      }
+    }
+  ]
+}
