@@ -1,0 +1,36 @@
+*~
+*.pyc
+*.pyo
+__pycache__/
+.vscode/
+.idea/
+node_modules/
+dist/
+build/
+*.o
+*.elf
+*.bin
+.DS_Store
+Thumbs.db
+.env
+.env.local
+*.log
+
+# Arduino
+build-*
+*.hex
+.arduino*/
+
+# Python
+venv/
+env/
+.pytest_cache/
+
+# IDE
+*.swp
+*.swo
+*~
+
+# Generated files
+.DS_Store
+Desktop.ini
