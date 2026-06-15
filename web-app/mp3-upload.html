@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capellan LED - Gestor de MP3 y Timeline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .device-status {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            font-size: 0.9em;
+        }
+
+        .device-status.connected {
+            background: #4caf50;
+        }
+
+        .device-status.disconnected {
+            background: #ff9800;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== SECCIÓN DE CARGA MP3 ===== */
+
+        .section {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f0f4ff;
+        }
+
+        .upload-area:hover {
+            background: #e8eeff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #d0deff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .file-info.active {
+            display: block;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .file-duration {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        /* ===== CONTROLES DE REPRODUCCIÓN ===== */
+
+        .controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .transport-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #d0d0d0;
+        }
+
+        .timeline-display {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .time-display {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* ===== TIMELINE VISUAL ===== */
+
+        .timeline-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .timeline-editor {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .timeline-visual {
+            width: 100%;
+            height: 150px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f5f5f5;
+            position: relative;
+            cursor: crosshair;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        .timeline-ruler {
+            display: flex;
+            height: 25px;
+            border-bottom: 1px solid #ddd;
+            background: #f0f0f0;
+            position: relative;
+            margin-bottom: 10px;
+            font-size: 0.75em;
+            color: #999;
+        }
+
+        .timeline-mark {
+            flex: 1;
+            border-right: 1px solid #ddd;
+            padding: 2px;
+            text-align: center;
+            min-width: 50px;
+        }
+
+        .keyframe-marker {
+            position: absolute;
+            width: 12px;
+            height: 100%;
+            top: 0;
+            transform: translateX(-6px);
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        .keyframe-marker:hover {
+            filter: brightness(0.8);
+        }
+
+        /* ===== EDITOR DE KEYFRAMES ===== */
+
+        .keyframe-editor {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .time-input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .time-input-group label {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+        }
+
+        .time-input-group input {
+            padding: 10px;
+            border-radius: 6px;
+            border: 2px solid #667eea;
+            font-size: 1.1em;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .time-display-sync {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* ===== LISTA DE KEYFRAMES ===== */
+
+        .keyframe-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .keyframe-item {
+            display: grid;
+            grid-template-columns: 80px 50px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .keyframe-time {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 0.95em;
+        }
+
+        .keyframe-color {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+        }
+
+        .keyframe-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .keyframe-info {
+            flex: 1;
+        }
+
+        .keyframe-effect {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .btn-delete {
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-size: 0.9em;
+        }
+
+        .btn-delete:hover {
+            background: #ff5252;
+        }
+
+        /* ===== ESTADÍSTICAS ===== */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+
+        /* ===== NOTIFICACIONES ===== */
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            background: #4caf50;
+        }
+
+        .notification.error {
+            background: #f44336;
+        }
+
+        .notification.info {
+            background: #2196f3;
+        }
+
+        /* ===== UPLOAD PROGRESS ===== */
+
+        .upload-progress {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .upload-progress.active {
+            display: block;
+        }
+
+        .progress-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* ===== MODAL ===== */
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-title {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .local-files-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .local-file-item {
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .local-file-info {
+            flex: 1;
+        }
+
+        .local-file-name {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .local-file-size {
+            color: #999;
+            font-size: 0.8em;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1a1a1a;
+            }
+
+            .container {
+                background: #2d2d2d;
+                color: #e0e0e0;
+            }
+
+            .section {
+                background: #333;
+                border-color: #444;
+            }
+
+            .section h2 {
+                color: #88ccff;
+            }
+
+            .keyframe-item {
+                background: #333;
+            }
+
+            .timeline-visual {
+                background: #333;
+                border-color: #444;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎆 Capellan LED - MP3 Manager Pro</h1>
+            <p>Sube MP3, crea timelines y sincroniza con tus LEDs</p>
+            <div class="device-status disconnected" id="deviceStatus">
+                🔴 Desconectado (Modo Local)
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- SECCIÓN IZQUIERDA: CARGA Y REPRODUCCIÓN -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- CARGA MP3 -->
+                <div class="section">
+                    <h2>📁 Cargar MP3</h2>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">🎵</div>
+                        <p><strong>Arrastra tu MP3 aquí</strong></p>
+                        <p style="color: #999; font-size: 0.9em;">o haz clic para seleccionar</p>
+                        <input type="file" id="mp3Input" accept=".mp3" />
+                    </div>
+
+                    <div class="file-info" id="fileInfo">
+                        <div class="file-name" id="fileName"></div>
+                        <div class="file-size" id="fileSize"></div>
+                        <div class="file-duration" id="fileDuration"></div>
+                    </div>
+
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="progress-text">
+                            <span>Guardando localmente...</span>
+                            <span id="uploadPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="uploadProgressFill"></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <button class="btn-primary" id="viewLocalFilesBtn" style="width: 100%;">
+                            📂 Ver archivos guardados
+                        </button>
+                    </div>
+                </div>
+
+                <!-- REPRODUCCIÓN -->
+                <div class="section">
+                    <h2>⏱️ Reproducción</h2>
+
+                    <div class="controls-section">
+                        <div class="transport-controls">
+                            <button class="btn-primary" id="playBtn" disabled>▶ Play</button>
+                            <button class="btn-secondary" id="pauseBtn" disabled>⏸ Pausa</button>
+                            <button class="btn-secondary" id="stopBtn" disabled>⏹ Detener</button>
+                        </div>
+
+                        <div class="timeline-display">
+                            <div class="time-display" id="timeDisplay">00:00 / 00:00</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="playbackProgress"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">📊 Estadísticas</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value" id="statSize">0 MB</div>
+                            <div class="stat-label">Tamaño</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="statDuration">0:00</div>
+                            <div class="stat-label">Duración</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="statKeyframes">0</div>
+                            <div class="stat-label">Keyframes</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="statSpeed">0 KB/s</div>
+                            <div class="stat-label">Velocidad</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN DERECHA: TIMELINE EDITOR -->
+            <div class="timeline-section">
+                <div class="section timeline-editor">
+                    <h2>🎬 Editor de Timeline</h2>
+
+                    <!-- Selector de archivo -->
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: #667eea; font-weight: bold;">Archivo a editar:</label>
+                        <select id="mp3SelectEdit" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-top: 5px;">
+                            <option value="">Selecciona un MP3</option>
+                        </select>
+                    </div>
+
+                    <!-- Timeline visual -->
+                    <h3 style="color: #667eea; margin-bottom: 10px; font-size: 0.95em;">Timeline Visual</h3>
+                    <div class="timeline-ruler" id="timelineRuler"></div>
+                    <div class="timeline-visual" id="timelineVisual"></div>
+
+                    <!-- Editor de keyframes -->
+                    <div class="keyframe-editor">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">➕ Agregar Keyframe</h3>
+
+                        <!-- Entrada de tiempo mejorada -->
+                        <div style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 6px;">
+                            <label style="color: #667eea; font-weight: bold; display: block; margin-bottom: 10px;">⏱️ Tiempo</label>
+                            <div class="time-inputs">
+                                <div class="time-input-group">
+                                    <label>Minutos</label>
+                                    <input type="number" id="keyframeMinutes" min="0" value="0">
+                                </div>
+                                <div class="time-input-group">
+                                    <label>Segundos</label>
+                                    <input type="number" id="keyframeSeconds" min="0" max="59" value="0">
+                                </div>
+                                <div class="time-input-group">
+                                    <label>Milisegundos</label>
+                                    <input type="number" id="keyframeMillis" min="0" max="999" value="0">
+                                </div>
+                            </div>
+                            <div class="time-display-sync" id="timeDisplaySync">00:00.000</div>
+                        </div>
+
+                        <div class="editor-grid">
+                            <div class="form-group">
+                                <label>Color</label>
+                                <input type="color" id="keyframeColor" value="#ff0000">
+                            </div>
+                            <div class="form-group">
+                                <label>Efecto</label>
+                                <select id="keyframeEffect">
+                                    <option value="solid">Sólido</option>
+                                    <option value="pulse">Pulso</option>
+                                    <option value="strobe">Estrobo</option>
+                                    <option value="rainbow">Arcoíris</option>
+                                    <option value="fire">Fuego</option>
+                                    <option value="breathe">Respiración</option>
+                                    <option value="chase">Chase</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Brillo (%)</label>
+                                <input type="range" id="keyframeBrightness" min="0" max="100" value="100">
+                            </div>
+                        </div>
+
+                        <button class="btn-primary" id="addKeyframeBtn" style="width: 100%;">
+                            ➕ Agregar Keyframe
+                        </button>
+                    </div>
+
+                    <!-- Lista de keyframes -->
+                    <h3 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">Keyframes</h3>
+                    <div class="keyframe-list" id="keyframeList">
+                        <p style="color: #999; text-align: center;">No hay keyframes aún</p>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <button class="btn-primary" id="saveTimelineBtn">💾 Guardar</button>
+                        <button class="btn-secondary" id="loadTimelineBtn">📂 Cargar</button>
+                        <button class="btn-secondary" id="syncDeviceBtn">📤 Sincronizar</button>
+                    </div>
+                    
+                    <button class="btn-secondary" id="clearTimelineBtn" style="width: 100%; margin-top: 10px;">
+                        🗑️ Limpiar Timeline
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Archivos Locales -->
+    <div class="modal" id="localFilesModal">
+        <div class="modal-content">
+            <div class="modal-title">📂 Archivos Guardados</div>
+            <div class="local-files-list" id="localFilesList">
+                <p style="color: #999; text-align: center;">No hay archivos guardados</p>
+            </div>
+            <button class="btn-primary" onclick="closeLocalFilesModal()" style="width: 100%;">Cerrar</button>
+        </div>
+    </div>
+
+    <script src="mp3-upload-v2.js"></script>
+</body>
+</html>
