@@ -1,0 +1,91 @@
+{
+  "name": "capellan-led-installer",
+  "version": "1.0.0",
+  "description": "Instalador profesional para Capellán LED - Control de LEDs con timeline sincronizado a MP3",
+  "main": "main.js",
+  "homepage": "./",
+  "author": "yrost97-afk",
+  "license": "MIT",
+  "scripts": {
+    "react-scripts:start": "react-scripts start",
+    "react-scripts:build": "react-scripts build",
+    "react-scripts:test": "react-scripts test",
+    "react-scripts:eject": "react-scripts eject",
+    "electron:start": "electron .",
+    "electron:dev": "concurrently \"npm run react-scripts:start\" \"wait-on http://localhost:3000 && npm run electron:start\"",
+    "electron:build": "npm run react-scripts:build",
+    "build:exe": "npm run electron:build && electron-builder --win --publish never",
+    "build:portable": "npm run electron:build && electron-builder --win portable --publish never",
+    "build:installer": "npm run electron:build && electron-builder --win nsis --publish never"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "electron-squirrel-startup": "^1.1.0"
+  },
+  "devDependencies": {
+    "react-scripts": "5.0.0",
+    "electron": "^latest",
+    "electron-builder": "^latest",
+    "electron-devtools-installer": "^latest",
+    "concurrently": "^latest",
+    "wait-on": "^latest"
+  },
+  "build": {
+    "appId": "com.capellanled.installer",
+    "productName": "Capellán LED",
+    "directories": {
+      "buildResources": "assets"
+    },
+    "files": [
+      "build/**/*",
+      "main.js",
+      "preload.js",
+      "public/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "certificateFile": null,
+      "certificatePassword": null,
+      "signingHashAlgorithms": [
+        "sha256"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Capellán LED"
+    },
+    "portable": {
+      "artifactName": "Capellan-LED-${version}-portable.exe"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
