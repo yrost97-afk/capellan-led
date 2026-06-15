@@ -133,6 +133,7 @@
             padding: 25px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
+            margin-bottom: 20px;
         }
 
         .panel:hover {
@@ -152,7 +153,7 @@
             display: none;
         }
 
-        /* ==================== CONEXIÓN ==================== */
+        /* ==================== CONEXIÓN SERIAL ==================== */
 
         .connection {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -351,6 +352,7 @@
             border-radius: 12px;
             padding: 25px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
 
         .timeline-header {
@@ -405,6 +407,17 @@
         .btn-success:hover {
             background: #388E3C;
             box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #E0B300;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
             transform: translateY(-2px);
         }
 
@@ -502,32 +515,117 @@
             display: flex;
         }
 
-        /* ==================== BOTONES DE DESCARGA ==================== */
+        /* ==================== UPLOAD ESP PANEL ==================== */
 
-        .download-section {
+        .upload-esp {
+            background: linear-gradient(135deg, #FF6B35 0%, #D63230 100%);
+            color: white;
+        }
+
+        .upload-esp h2 {
+            color: white;
+            border-bottom-color: rgba(255,255,255,0.3);
+        }
+
+        .upload-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .upload-input-group {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
-            margin-bottom: 15px;
+            align-items: center;
         }
 
-        .btn-download {
-            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
-            color: white;
-            padding: 12px 25px;
+        .upload-input-group input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
             border: none;
             border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 1em;
         }
 
-        .btn-download:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        .progress-container {
+            width: 100%;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            overflow: hidden;
+            height: 30px;
+            display: none;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .upload-status {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            font-size: 0.9em;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* ==================== NOTIFICACIONES ==================== */
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+            z-index: 10000;
+        }
+
+        .notification.success {
+            background: var(--success);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.warning {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .notification.info {
+            background: var(--primary);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         /* ==================== COLOR PREVIEW ==================== */
@@ -602,6 +700,19 @@
                 flex: 1;
                 min-width: 100px;
             }
+
+            .upload-input-group {
+                flex-direction: column;
+            }
+
+            .upload-input-group input {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .upload-input-group .btn {
+                width: 100%;
+            }
         }
 
         @media (max-width: 480px) {
@@ -623,6 +734,13 @@
 
             .effects-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .notification {
+                max-width: 90vw;
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
             }
         }
 
@@ -660,18 +778,18 @@
         <!-- HEADER -->
         <header>
             <h1>🎆 Capellán LED Pro</h1>
-            <p>Panel de Control Profesional con Vista Previa Visual</p>
+            <p>Panel de Control Profesional + Almacenamiento en ESP32</p>
         </header>
 
         <!-- CONEXIÓN SERIAL -->
         <div class="panel connection">
-            <h2>📡 Conexión Serial</h2>
+            <h2>📡 Conexión Serial USB</h2>
             <div class="connection-controls">
                 <select id="portSelect">
                     <option value="">-- Selecciona puerto --</option>
                 </select>
-                <button id="connectBtn" class="btn btn-primary">Conectar</button>
-                <button id="disconnectBtn" class="btn btn-danger" disabled>Desconectar</button>
+                <button id="connectBtn" class="btn btn-primary" onclick="requestSerialPort()">Conectar</button>
+                <button id="disconnectBtn" class="btn btn-danger" disabled onclick="disconnectSerial()">Desconectar</button>
                 <span id="status" class="status disconnected">Desconectado</span>
             </div>
         </div>
@@ -739,10 +857,10 @@
                         </div>
                     </div>
                     <div style="margin-top: 15px; text-align: center;">
-                        <p style="color: var(--primary); font-size: 0.9em; margin: 5px 0;">
+                        <p style="color: white; font-size: 0.9em; margin: 5px 0;">
                             <strong>Efecto Actual:</strong> <span id="currentEffectDisplay">Ninguno</span>
                         </p>
-                        <p style="color: var(--primary); font-size: 0.9em; margin: 5px 0;">
+                        <p style="color: white; font-size: 0.9em; margin: 5px 0;">
                             <strong>Color:</strong> <span id="effectColorDisplay">#FF0000</span>
                         </p>
                     </div>
@@ -757,8 +875,8 @@
                 <div class="timeline-controls-btn">
                     <button class="btn btn-primary" onclick="playTimeline()">▶️ Reproducir</button>
                     <button class="btn btn-primary" onclick="stopTimeline()">⏹️ Detener</button>
-                    <button class="btn btn-success btn-small" onclick="downloadTimeline()">💾 Descargar Timeline</button>
-                    <button class="btn btn-primary btn-small" onclick="document.getElementById('uploadTimeline').click()">📂 Cargar Timeline</button>
+                    <button class="btn btn-success btn-small" onclick="downloadTimeline()">💾 Descargar PC</button>
+                    <button class="btn btn-primary btn-small" onclick="document.getElementById('uploadTimeline').click()">📂 Cargar PC</button>
                     <input type="file" id="uploadTimeline" style="display: none;" accept=".json" onchange="uploadTimeline(event)">
                 </div>
             </div>
@@ -771,6 +889,39 @@
                 <p>💡 <strong>Arrastra colores y efectos aquí para crear tu secuencia</strong></p>
             </div>
         </div>
+
+        <!-- PANEL PARA SUBIR AL ESP VÍA USB -->
+        <div class="panel upload-esp">
+            <h2>📤 Subir Timeline al ESP32 (USB)</h2>
+            <div class="upload-controls">
+                <div class="upload-input-group">
+                    <input type="text" id="timelineName" placeholder="Nombre del timeline (ej: mi-show)" value="capellan-timeline">
+                    <button class="btn btn-warning" id="uploadBtn" onclick="uploadTimelineToESP()" disabled>📤 Subir a ESP32</button>
+                </div>
+                <div class="upload-input-group">
+                    <button class="btn btn-success" id="listBtn" onclick="listTimelinesESP()" disabled>📋 Listar Timelines</button>
+                    <button class="btn btn-danger" id="deleteBtn" onclick="deleteTimelineESP()" disabled>🗑️ Borrar Timeline</button>
+                </div>
+                <div class="progress-container" id="uploadProgress">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+                <div class="upload-status" id="uploadStatus">✅ Conecta el ESP32 y presiona "Conectar" en la sección de conexión</div>
+            </div>
+        </div>
+
+        <!-- LISTA DE TIMELINES EN ESP -->
+        <div id="timeLinesListPanel" style="display: none;">
+            <div class="panel">
+                <h2>📋 Timelines Guardados en ESP32</h2>
+                <select id="espTimelinesList" style="width: 100%; padding: 10px 15px; border-radius: 6px; font-size: 1em; min-height: 40px;">
+                    <option value="">Cargando timelines...</option>
+                </select>
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-success" onclick="runTimelineESP()">▶️ Ejecutar</button>
+                    <button class="btn btn-danger" onclick="deleteSelectedTimeline()">🗑️ Borrar Seleccionado</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -780,11 +931,254 @@
         let isPlaying = false;
         let currentTimelineIndex = 0;
         let ledCount = 60;
+        let serialPort = null;
+        let serialWriter = null;
+        let serialReader = null;
+        let serialConnected = false;
+
+        // ==================== WEB SERIAL API ====================
+        async function requestSerialPort() {
+            try {
+                serialPort = await navigator.serial.requestPort();
+                await serialPort.open({ baudRate: 115200 });
+                
+                serialWriter = serialPort.writable.getWriter();
+                const reader = serialPort.readable.getReader();
+                
+                serialConnected = true;
+                updateSerialUI();
+                showNotification('✅ ESP32 conectado por USB', 'success');
+
+                // Escuchar datos entrantes
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                }
+            } catch (error) {
+                showNotification(`❌ Error: ${error.message}`, 'error');
+                serialConnected = false;
+                updateSerialUI();
+            }
+        }
+
+        function disconnectSerial() {
+            if (serialWriter) {
+                serialWriter.releaseLock();
+                serialWriter = null;
+            }
+            if (serialPort) {
+                serialPort.close();
+                serialPort = null;
+            }
+            serialConnected = false;
+            updateSerialUI();
+            showNotification('❌ Desconectado del ESP32', 'warning');
+        }
+
+        function updateSerialUI() {
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            const status = document.getElementById('status');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const listBtn = document.getElementById('listBtn');
+            const deleteBtn = document.getElementById('deleteBtn');
+
+            if (serialConnected) {
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                status.textContent = '✅ Conectado';
+                status.className = 'status connected';
+                uploadBtn.disabled = false;
+                listBtn.disabled = false;
+                deleteBtn.disabled = false;
+            } else {
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                status.textContent = '❌ Desconectado';
+                status.className = 'status disconnected';
+                uploadBtn.disabled = true;
+                listBtn.disabled = true;
+                deleteBtn.disabled = true;
+            }
+        }
+
+        // ==================== SERIAL COMMUNICATION ====================
+        async function sendSerialCommand(command) {
+            if (!serialConnected || !serialWriter) {
+                showNotification('❌ ESP32 no conectado', 'warning');
+                return false;
+            }
+
+            try {
+                const data = new TextEncoder().encode(command + '\n');
+                await serialWriter.write(data);
+                return true;
+            } catch (error) {
+                showNotification(`❌ Error al enviar comando: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // ==================== FUNCIONES DE NOTIFICACIÓN ====================
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // ==================== SUBIR TIMELINE AL ESP ====================
+        async function uploadTimelineToESP() {
+            if (!serialConnected) {
+                showNotification('❌ Conecta el ESP32 primero', 'warning');
+                return;
+            }
+
+            if (timelineEvents.length === 0) {
+                showNotification('❌ No hay eventos en el timeline', 'warning');
+                return;
+            }
+
+            const timelineName = document.getElementById('timelineName').value.trim() || 'timeline';
+            const data = {
+                device: currentDeviceId,
+                name: timelineName,
+                timestamp: new Date().toISOString(),
+                events: timelineEvents
+            };
+
+            const uploadBtn = document.getElementById('uploadBtn');
+            const progressContainer = document.getElementById('uploadProgress');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '📤 Subiendo...';
+            progressContainer.classList.add('active');
+
+            try {
+                // Convertir JSON a string
+                const jsonString = JSON.stringify(data);
+                const totalSize = jsonString.length;
+
+                // Enviar comando de inicio de upload
+                await sendSerialCommand(`UPLOAD_START|${timelineName}|${totalSize}`);
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Enviar datos en chunks
+                const chunkSize = 64;
+                for (let i = 0; i < jsonString.length; i += chunkSize) {
+                    const chunk = jsonString.slice(i, i + chunkSize);
+                    await sendSerialCommand(`DATA|${btoa(chunk)}`);
+                    
+                    const progress = Math.min(100, Math.round((i / totalSize) * 100));
+                    document.getElementById('progressFill').style.width = progress + '%';
+                    document.getElementById('progressFill').textContent = progress + '%';
+                    
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+
+                // Enviar comando de fin
+                await sendSerialCommand('UPLOAD_END');
+                
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('progressFill').textContent = '100%';
+                document.getElementById('uploadStatus').textContent = `✅ Timeline "${timelineName}" subido exitosamente`;
+                
+                showNotification(`✅ Timeline "${timelineName}" subido al ESP32`, 'success');
+                
+                setTimeout(() => {
+                    progressContainer.classList.remove('active');
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = '📤 Subir a ESP32';
+                }, 1500);
+
+            } catch (error) {
+                showNotification(`❌ Error al subir: ${error.message}`, 'error');
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '📤 Subir a ESP32';
+                progressContainer.classList.remove('active');
+            }
+        }
+
+        // ==================== LISTAR TIMELINES ====================
+        async function listTimelinesESP() {
+            if (!serialConnected) {
+                showNotification('❌ Conecta el ESP32 primero', 'warning');
+                return;
+            }
+
+            try {
+                await sendSerialCommand('LIST_TIMELINES');
+                showNotification('📋 Listando timelines...', 'info');
+                document.getElementById('timeLinesListPanel').style.display = 'block';
+            } catch (error) {
+                showNotification(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // ==================== EJECUTAR TIMELINE ====================
+        async function runTimelineESP() {
+            const select = document.getElementById('espTimelinesList');
+            const timelineName = select.value;
+
+            if (!timelineName) {
+                showNotification('❌ Selecciona un timeline', 'warning');
+                return;
+            }
+
+            if (!serialConnected) {
+                showNotification('❌ Conecta el ESP32 primero', 'warning');
+                return;
+            }
+
+            try {
+                await sendSerialCommand(`RUN_TIMELINE|${timelineName}`);
+                showNotification(`▶️ Reproduciendo "${timelineName}"`, 'success');
+            } catch (error) {
+                showNotification(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // ==================== ELIMINAR TIMELINE ====================
+        async function deleteTimelineESP() {
+            const select = document.getElementById('espTimelinesList');
+            const timelineName = select.value;
+
+            if (!timelineName) {
+                showNotification('❌ Selecciona un timeline', 'warning');
+                return;
+            }
+
+            if (!confirm(`¿Está seguro que desea eliminar "${timelineName}"?`)) {
+                return;
+            }
+
+            if (!serialConnected) {
+                showNotification('❌ Conecta el ESP32 primero', 'warning');
+                return;
+            }
+
+            try {
+                await sendSerialCommand(`DELETE_TIMELINE|${timelineName}`);
+                showNotification(`✅ Timeline eliminado`, 'success');
+                listTimelinesESP();
+            } catch (error) {
+                showNotification(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteSelectedTimeline() {
+            await deleteTimelineESP();
+        }
 
         // ==================== INICIALIZACIÓN ====================
         function initializeApp() {
             initializeLEDPreview();
             updateColorInfo();
+            updateSerialUI();
         }
 
         function initializeLEDPreview() {
@@ -871,8 +1265,6 @@
                 ...data,
                 position: xPos
             });
-            
-            console.log('Evento agregado:', timelineEvents);
         }
 
         function dragTimelineEvent(event, eventId) {
@@ -904,6 +1296,7 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            showNotification('📥 Timeline descargado', 'success');
         }
 
         function uploadTimeline(event) {
@@ -917,7 +1310,6 @@
                     timelineEvents = data.events || [];
                     currentDeviceId = data.device || 'capellan';
                     
-                    // Regenerar vista visual
                     const track = document.getElementById('timelineTrackInner');
                     track.innerHTML = '';
                     
@@ -950,9 +1342,9 @@
                         track.appendChild(eventEl);
                     });
                     
-                    console.log('Timeline cargado:', timelineEvents);
+                    showNotification('📤 Timeline cargado correctamente', 'success');
                 } catch (error) {
-                    alert('Error al cargar el timeline: ' + error.message);
+                    showNotification(`❌ Error al cargar el timeline: ${error.message}`, 'error');
                 }
             };
             reader.readAsText(file);
@@ -961,7 +1353,7 @@
         // ==================== REPRODUCCIÓN DEL TIMELINE ====================
         function playTimeline() {
             if (timelineEvents.length === 0) {
-                alert('No hay eventos en el timeline');
+                showNotification('❌ No hay eventos en el timeline', 'warning');
                 return;
             }
             
@@ -1086,11 +1478,9 @@
         function switchDevice(deviceId) {
             currentDeviceId = deviceId;
             
-            // Actualizar tabs activos
             document.querySelectorAll('.device-tab').forEach(tab => tab.classList.remove('active'));
             event.target.classList.add('active');
             
-            // Actualizar LED count según dispositivo
             const ledCounts = {
                 'capellan': 60,
                 'staff': 120,
@@ -1109,6 +1499,11 @@
 
         // ==================== INICIAR APP ====================
         window.addEventListener('load', initializeApp);
+
+        // Verificar soporte de Web Serial API
+        if (!navigator.serial) {
+            showNotification('⚠️ Web Serial API no soportada en tu navegador. Usa Chrome/Edge', 'warning');
+        }
     </script>
 </body>
 </html>
