@@ -58,6 +58,8 @@ int timelineCount = 0;
 bool isTimelineRunning = false;
 unsigned long timelineStartTime = 0;
 int currentEventIndex = 0;
+unsigned long demoStartTime = 0;
+int demoStep = 0;
 
 // ==================== FUNCIONES AUXILIARES MULTI-PLATAFORMA ====================
 
@@ -230,6 +232,67 @@ void allOff() {
   strip.show();
 }
 
+// ==================== DEMOSTRACIÓN DE EFECTOS ====================
+
+void runDemoSequence() {
+  unsigned long currentTime = millis();
+  unsigned long elapsedTime = currentTime - demoStartTime;
+  
+  // Cada efecto dura 8 segundos
+  int effectDuration = 8000;
+  int currentEffect = (elapsedTime / effectDuration) % 8;
+  
+  switch(currentEffect) {
+    case 0:
+      // Efecto 1: Colores básicos (2 segundos cada uno)
+      if ((elapsedTime % effectDuration) < 2000) {
+        setColor(255, 0, 0);  // Rojo
+      } else if ((elapsedTime % effectDuration) < 4000) {
+        setColor(0, 255, 0);  // Verde
+      } else if ((elapsedTime % effectDuration) < 6000) {
+        setColor(0, 0, 255);  // Azul
+      } else {
+        setColor(255, 255, 0);  // Amarillo
+      }
+      break;
+      
+    case 1:
+      // Efecto 2: Pulso rojo
+      pulse(255, 0, 0, 15);
+      break;
+      
+    case 2:
+      // Efecto 3: Teatro verde
+      theater(0, 255, 0, 50);
+      break;
+      
+    case 3:
+      // Efecto 4: Arco iris
+      rainbow(20);
+      break;
+      
+    case 4:
+      // Efecto 5: Chase azul
+      chase(0, 100, 255, 30);
+      break;
+      
+    case 5:
+      // Efecto 6: Bounce naranja
+      bounce(255, 165, 0, 25);
+      break;
+      
+    case 6:
+      // Efecto 7: Wave púrpura
+      wave(200, 0, 255, 15);
+      break;
+      
+    case 7:
+      // Efecto 8: Estroboscópico cian
+      strobe(0, 255, 255, 5, 100);
+      break;
+  }
+}
+
 // ==================== PROTOCOLO SERIAL UNIFICADO ====================
 
 void processCommand(String cmd) {
@@ -259,6 +322,7 @@ void processCommand(String cmd) {
       b = params.substring(p2 + 1).toInt();
       
       setColor(r, g, b);
+      isTimelineRunning = false;  // Detener demo si estaba corriendo
       Serial.println("OK|Color cambiado a RGB(" + String(r) + "," + String(g) + "," + String(b) + ")");
     } else {
       Serial.println("ERROR|Formato: COLOR|R|G|B");
@@ -271,16 +335,19 @@ void processCommand(String cmd) {
   }
   else if (command == "OFF") {
     allOff();
+    isTimelineRunning = false;
     Serial.println("OK|Todos los LEDs apagados");
   }
   
   // ===== EFECTOS =====
   else if (command == "RAINBOW") {
+    isTimelineRunning = false;
     uint8_t speed = params.length() > 0 ? params.toInt() : 20;
     rainbow(speed);
     Serial.println("OK|Efecto Arco Iris ejecutado");
   }
   else if (command == "PULSE") {
+    isTimelineRunning = false;
     int r = 0, g = 0, b = 0;
     int p1 = params.indexOf('|');
     int p2 = params.indexOf('|', p1 + 1);
@@ -299,6 +366,7 @@ void processCommand(String cmd) {
     }
   }
   else if (command == "THEATER") {
+    isTimelineRunning = false;
     int r = 0, g = 0, b = 0;
     int p1 = params.indexOf('|');
     int p2 = params.indexOf('|', p1 + 1);
@@ -317,6 +385,7 @@ void processCommand(String cmd) {
     }
   }
   else if (command == "FADE") {
+    isTimelineRunning = false;
     int r = 0, g = 0, b = 0;
     int p1 = params.indexOf('|');
     int p2 = params.indexOf('|', p1 + 1);
@@ -335,6 +404,7 @@ void processCommand(String cmd) {
     }
   }
   else if (command == "STROBE") {
+    isTimelineRunning = false;
     int r = 0, g = 0, b = 0;
     int p1 = params.indexOf('|');
     int p2 = params.indexOf('|', p1 + 1);
@@ -355,6 +425,7 @@ void processCommand(String cmd) {
     }
   }
   else if (command == "CHASE") {
+    isTimelineRunning = false;
     int r = 0, g = 0, b = 0;
     int p1 = params.indexOf('|');
     int p2 = params.indexOf('|', p1 + 1);
@@ -373,6 +444,7 @@ void processCommand(String cmd) {
     }
   }
   else if (command == "BOUNCE") {
+    isTimelineRunning = false;
     int r = 0, g = 0, b = 0;
     int p1 = params.indexOf('|');
     int p2 = params.indexOf('|', p1 + 1);
@@ -391,6 +463,7 @@ void processCommand(String cmd) {
     }
   }
   else if (command == "WAVE") {
+    isTimelineRunning = false;
     int r = 0, g = 0, b = 0;
     int p1 = params.indexOf('|');
     int p2 = params.indexOf('|', p1 + 1);
@@ -407,6 +480,14 @@ void processCommand(String cmd) {
     } else {
       Serial.println("ERROR|Formato: WAVE|R|G|B|speed");
     }
+  }
+  
+  // ===== DEMO =====
+  else if (command == "DEMO") {
+    isTimelineRunning = true;
+    demoStartTime = millis();
+    demoStep = 0;
+    Serial.println("OK|Demostración iniciada - Presiona DEMO para detener");
   }
   
   // ===== TIMELINE =====
@@ -462,7 +543,7 @@ void processCommand(String cmd) {
     Serial.println("║ Pin de Datos: GPIO" + String(LED_PIN));
     Serial.println("║ Cantidad de LEDs: " + String(NUM_LEDS));
     Serial.println("║ Velocidad Serial: " + String(SERIAL_BAUD));
-    Serial.println("║ Versión: 2.0 Multi-Plataforma");
+    Serial.println("║ Versión: 2.0 Multi-Plataforma + DEMO");
     Serial.println("╚═════════════════════════════════════════╝\n");
   }
   else if (command == "HELP") {
@@ -485,6 +566,10 @@ void processCommand(String cmd) {
     Serial.println("║ CHASE|R|G|B|speed        - Persecución");
     Serial.println("║ BOUNCE|R|G|B|speed       - Rebote");
     Serial.println("║ WAVE|R|G|B|speed         - Onda");
+    
+    Serial.println("║");
+    Serial.println("║ === DEMOSTRACIÓN ===");
+    Serial.println("║ DEMO                     - Mostrar todos los efectos");
     
     Serial.println("║");
     Serial.println("║ === TIMELINE ===");
@@ -523,10 +608,15 @@ void setup() {
   Serial.println();
   
   setupLED();
-  setColor(255, 0, 0);  // Rojo inicial
   
-  Serial.println("¡Listo! Escribe 'HELP' para ver los comandos disponibles");
+  // ===== DEMOSTRACIÓN AUTOMÁTICA AL ENCENDER =====
+  Serial.println("🎆 ¡Iniciando demostración automática de efectos!");
+  Serial.println("💡 Puedes interrumpir escribiendo cualquier comando o esperando 60 segundos");
   Serial.println();
+  
+  isTimelineRunning = true;
+  demoStartTime = millis();
+  demoStep = 0;
 }
 
 // ==================== LOOP ====================
@@ -541,6 +631,24 @@ void loop() {
       Serial.print(">>> ");
       Serial.println(command);
       processCommand(command);
+    }
+  }
+  
+  // Ejecutar demostración automática
+  if (isTimelineRunning) {
+    unsigned long currentTime = millis();
+    unsigned long demoElapsedTime = currentTime - demoStartTime;
+    
+    // La demostración dura 60 segundos (8 efectos x 8 segundos cada uno)
+    if (demoElapsedTime > 60000) {
+      // Terminar demo después de 60 segundos
+      isTimelineRunning = false;
+      allOff();
+      Serial.println("\n✓ Demostración completada. Usa 'DEMO' para iniciar de nuevo");
+      Serial.println("¡Ahora puedes usar los comandos! Escribe 'HELP' para ayuda\n");
+    } else {
+      // Ejecutar secuencia de demo
+      runDemoSequence();
     }
   }
   
