@@ -772,13 +772,15 @@
             animation: glow 1s infinite;
         }
     </style>
+    <!-- Cargar Timeline Executor Module -->
+    <script src="timeline-executor.js"></script>
 </head>
 <body>
     <div class="container">
         <!-- HEADER -->
         <header>
             <h1>🎆 Capellán LED Pro</h1>
-            <p>Panel de Control Profesional + Almacenamiento en ESP32</p>
+            <p>Panel de Control Profesional + Timeline Sincronizado</p>
         </header>
 
         <!-- CONEXIÓN SERIAL -->
@@ -836,12 +838,11 @@
                         <div class="effect-button sunset" draggable="true" ondragstart="dragEffect(event, 'SUNSET', {r: 255, g: 140, b: 0})">🌅 Atardecer</div>
                         <div class="effect-button neon" draggable="true" ondragstart="dragEffect(event, 'NEON', {r: 255, g: 0, b: 255})">⚡ Neón</div>
                         <div class="effect-button golden" draggable="true" ondragstart="dragEffect(event, 'GOLDEN', {r: 255, g: 215, b: 0})">✨ Dorado</div>
-                        <div class="effect-button" style="background: linear-gradient(135deg, #FF006E 0%, #8338EC 100%);" draggable="true" ondragstart="dragEffect(event, 'AURORA', {r: 255, g: 0, b: 128})">🌌 Aurora</div>
-                        <div class="effect-button" style="background: linear-gradient(135deg, #FF1493 0%, #FF69B4 100%);" draggable="true" ondragstart="dragEffect(event, 'CANDY', {r: 255, g: 20, b: 147})">🍭 Dulce</div>
-                        <div class="effect-button" style="background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%);" draggable="true" ondragstart="dragEffect(event, 'LIGHTNING', {r: 30, g: 144, b: 255})">⚡ Rayo</div>
-                        <div class="effect-button" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);" draggable="true" ondragstart="dragEffect(event, 'ENERGY', {r: 255, g: 215, b: 0})">💥 Energía</div>
-                        <div class="effect-button" style="background: linear-gradient(135deg, #9400D3 0%, #4B0082 100%);" draggable="true" ondragstart="dragEffect(event, 'QUANTUM', {r: 148, g: 0, b: 211})">🔮 Cuántico</div>
-                        <div class="effect-button" style="background: linear-gradient(135deg, #00FF00 0%, #00AA00 100%);" draggable="true" ondragstart="dragEffect(event, 'MATRIX', {r: 0, g: 255, b: 0})">💻 Matrix</div>
+                        <div class="effect-button" style="background: linear-gradient(135deg, #FF006E 0%, #8338EC 100%);" draggable="true" ondragstart="dragEffect(event, 'STROBE', {r: 255, g: 255, b: 255, speed: 100, duration: 5000})">💥 Strobe</div>
+                        <div class="effect-button" style="background: linear-gradient(135deg, #FF1493 0%, #FF69B4 100%);" draggable="true" ondragstart="dragEffect(event, 'BREATHE', {r: 255, g: 100, b: 200, speed: 5, duration: 5000})">💨 Respirar</div>
+                        <div class="effect-button" style="background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%);" draggable="true" ondragstart="dragEffect(event, 'CHASE', {r: 0, g: 100, b: 255, speed: 50, duration: 5000})">🏃 Chase</div>
+                        <div class="effect-button" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);" draggable="true" ondragstart="dragEffect(event, 'RAINBOW_CYCLE', {speed: 50, duration: 10000})">🌈 Arcoíris</div>
+                        <div class="effect-button" style="background: linear-gradient(135deg, #9400D3 0%, #4B0082 100%);" draggable="true" ondragstart="dragEffect(event, 'SPARKLE', {r: 200, g: 150, b: 255, speed: 100, duration: 5000})">✨ Destellos</div>
                     </div>
                 </div>
             </div>
@@ -857,10 +858,10 @@
                         </div>
                     </div>
                     <div style="margin-top: 15px; text-align: center;">
-                        <p style="color: white; font-size: 0.9em; margin: 5px 0;">
+                        <p style="color: #333; font-size: 0.9em; margin: 5px 0;">
                             <strong>Efecto Actual:</strong> <span id="currentEffectDisplay">Ninguno</span>
                         </p>
-                        <p style="color: white; font-size: 0.9em; margin: 5px 0;">
+                        <p style="color: #333; font-size: 0.9em; margin: 5px 0;">
                             <strong>Color:</strong> <span id="effectColorDisplay">#FF0000</span>
                         </p>
                     </div>
@@ -1002,204 +1003,28 @@
             }
         }
 
-        // ==================== SERIAL COMMUNICATION ====================
-        async function sendSerialCommand(command) {
-            if (!serialConnected || !serialWriter) {
-                showNotification('❌ ESP32 no conectado', 'warning');
-                return false;
-            }
+        // ==================== FUNCIONES DE TIMELINE ====================
 
-            try {
-                const data = new TextEncoder().encode(command + '\n');
-                await serialWriter.write(data);
-                return true;
-            } catch (error) {
-                showNotification(`❌ Error al enviar comando: ${error.message}`, 'error');
-                return false;
-            }
+        function playTimeline() {
+            playTimelineOnDevice(timelineEvents);
         }
 
-        // ==================== FUNCIONES DE NOTIFICACIÓN ====================
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.style.animation = 'slideIn 0.3s ease reverse';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
+        function stopTimeline() {
+            stopTimelineOnDevice();
         }
 
-        // ==================== SUBIR TIMELINE AL ESP ====================
-        async function uploadTimelineToESP() {
-            if (!serialConnected) {
-                showNotification('❌ Conecta el ESP32 primero', 'warning');
-                return;
-            }
-
-            if (timelineEvents.length === 0) {
-                showNotification('❌ No hay eventos en el timeline', 'warning');
-                return;
-            }
-
-            const timelineName = document.getElementById('timelineName').value.trim() || 'timeline';
-            const data = {
-                device: currentDeviceId,
-                name: timelineName,
-                timestamp: new Date().toISOString(),
-                events: timelineEvents
-            };
-
-            const uploadBtn = document.getElementById('uploadBtn');
-            const progressContainer = document.getElementById('uploadProgress');
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = '📤 Subiendo...';
-            progressContainer.classList.add('active');
-
-            try {
-                // Convertir JSON a string
-                const jsonString = JSON.stringify(data);
-                const totalSize = jsonString.length;
-
-                // Enviar comando de inicio de upload
-                await sendSerialCommand(`UPLOAD_START|${timelineName}|${totalSize}`);
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                // Enviar datos en chunks
-                const chunkSize = 64;
-                for (let i = 0; i < jsonString.length; i += chunkSize) {
-                    const chunk = jsonString.slice(i, i + chunkSize);
-                    await sendSerialCommand(`DATA|${btoa(chunk)}`);
-                    
-                    const progress = Math.min(100, Math.round((i / totalSize) * 100));
-                    document.getElementById('progressFill').style.width = progress + '%';
-                    document.getElementById('progressFill').textContent = progress + '%';
-                    
-                    await new Promise(resolve => setTimeout(resolve, 50));
-                }
-
-                // Enviar comando de fin
-                await sendSerialCommand('UPLOAD_END');
-                
-                document.getElementById('progressFill').style.width = '100%';
-                document.getElementById('progressFill').textContent = '100%';
-                document.getElementById('uploadStatus').textContent = `✅ Timeline "${timelineName}" subido exitosamente`;
-                
-                showNotification(`✅ Timeline "${timelineName}" subido al ESP32`, 'success');
-                
-                setTimeout(() => {
-                    progressContainer.classList.remove('active');
-                    uploadBtn.disabled = false;
-                    uploadBtn.textContent = '📤 Subir a ESP32';
-                }, 1500);
-
-            } catch (error) {
-                showNotification(`❌ Error al subir: ${error.message}`, 'error');
-                uploadBtn.disabled = false;
-                uploadBtn.textContent = '📤 Subir a ESP32';
-                progressContainer.classList.remove('active');
-            }
-        }
-
-        // ==================== LISTAR TIMELINES ====================
-        async function listTimelinesESP() {
-            if (!serialConnected) {
-                showNotification('❌ Conecta el ESP32 primero', 'warning');
-                return;
-            }
-
-            try {
-                await sendSerialCommand('LIST_TIMELINES');
-                showNotification('📋 Listando timelines...', 'info');
-                document.getElementById('timeLinesListPanel').style.display = 'block';
-            } catch (error) {
-                showNotification(`❌ Error: ${error.message}`, 'error');
-            }
-        }
-
-        // ==================== EJECUTAR TIMELINE ====================
-        async function runTimelineESP() {
-            const select = document.getElementById('espTimelinesList');
-            const timelineName = select.value;
-
-            if (!timelineName) {
-                showNotification('❌ Selecciona un timeline', 'warning');
-                return;
-            }
-
-            if (!serialConnected) {
-                showNotification('❌ Conecta el ESP32 primero', 'warning');
-                return;
-            }
-
-            try {
-                await sendSerialCommand(`RUN_TIMELINE|${timelineName}`);
-                showNotification(`▶️ Reproduciendo "${timelineName}"`, 'success');
-            } catch (error) {
-                showNotification(`❌ Error: ${error.message}`, 'error');
-            }
-        }
-
-        // ==================== ELIMINAR TIMELINE ====================
-        async function deleteTimelineESP() {
-            const select = document.getElementById('espTimelinesList');
-            const timelineName = select.value;
-
-            if (!timelineName) {
-                showNotification('❌ Selecciona un timeline', 'warning');
-                return;
-            }
-
-            if (!confirm(`¿Está seguro que desea eliminar "${timelineName}"?`)) {
-                return;
-            }
-
-            if (!serialConnected) {
-                showNotification('❌ Conecta el ESP32 primero', 'warning');
-                return;
-            }
-
-            try {
-                await sendSerialCommand(`DELETE_TIMELINE|${timelineName}`);
-                showNotification(`✅ Timeline eliminado`, 'success');
-                listTimelinesESP();
-            } catch (error) {
-                showNotification(`❌ Error: ${error.message}`, 'error');
-            }
-        }
-
-        async function deleteSelectedTimeline() {
-            await deleteTimelineESP();
-        }
-
-        // ==================== INICIALIZACIÓN ====================
-        function initializeApp() {
-            initializeLEDPreview();
-            updateColorInfo();
-            updateSerialUI();
-        }
-
-        function initializeLEDPreview() {
-            const preview = document.getElementById('ledStripPreview');
-            preview.innerHTML = '';
-            for (let i = 0; i < ledCount; i++) {
-                const led = document.createElement('div');
-                led.className = 'led-dot';
-                led.id = `led-${i}`;
-                preview.appendChild(led);
-            }
-        }
-
-        // ==================== DRAG & DROP SYSTEM ====================
         function dragColor(event) {
             const color = document.getElementById('colorPicker').value;
+            const rgb = hexToRgb(color);
+            
             event.dataTransfer.effectAllowed = 'copy';
             event.dataTransfer.setData('application/json', JSON.stringify({
                 type: 'color',
-                color: color,
-                rgb: hexToRgb(color)
+                r: rgb.r,
+                g: rgb.g,
+                b: rgb.b,
+                time: getCurrentTimelinePosition(),
+                duration: 1000
             }));
         }
 
@@ -1207,9 +1032,42 @@
             event.dataTransfer.effectAllowed = 'copy';
             event.dataTransfer.setData('application/json', JSON.stringify({
                 type: 'effect',
-                effect: effectName,
-                color: color
+                effectName: effectName,
+                r: color.r || 255,
+                g: color.g || 255,
+                b: color.b || 255,
+                speed: color.speed || 50,
+                time: getCurrentTimelinePosition(),
+                duration: color.duration || 5000
             }));
+        }
+
+        function dropEffect(event) {
+            event.preventDefault();
+            
+            try {
+                const data = JSON.parse(event.dataTransfer.getData('application/json'));
+                
+                // Calcular posición en el timeline
+                const timelineTrack = document.getElementById('timelineTrack');
+                const rect = timelineTrack.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const percentPosition = x / rect.width;
+                const timelineWidth = document.getElementById('timelineTrackInner').offsetWidth;
+                const timePosition = (percentPosition * timelineWidth) / 10;
+                
+                data.time = Math.max(0, timePosition);
+                
+                // Agregar evento al timeline
+                timelineEvents.push(data);
+                timelineEvents.sort((a, b) => a.time - b.time);
+                
+                renderTimeline();
+                showNotification('✅ Evento agregado al timeline', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('❌ Error al agregar evento', 'error');
+            }
         }
 
         function allowDrop(event) {
@@ -1217,72 +1075,98 @@
             event.dataTransfer.dropEffect = 'copy';
         }
 
-        function dropEffect(event) {
-            event.preventDefault();
-            const data = JSON.parse(event.dataTransfer.getData('application/json'));
+        function renderTimeline() {
+            const timelineTrackInner = document.getElementById('timelineTrackInner');
+            timelineTrackInner.innerHTML = '';
             
-            const track = document.getElementById('timelineTrack');
-            const rect = track.getBoundingClientRect();
-            const x = event.clientX - rect.left + track.parentElement.scrollLeft;
-            
-            addTimelineEvent(data, x);
-        }
-
-        // ==================== TIMELINE MANAGEMENT ====================
-        function addTimelineEvent(data, xPos) {
-            const eventId = Date.now();
-            const track = document.getElementById('timelineTrackInner');
-            
-            const eventEl = document.createElement('div');
-            eventEl.className = 'timeline-event';
-            eventEl.id = `event-${eventId}`;
-            eventEl.style.left = xPos + 'px';
-            
-            let displayText = '';
-            let bgColor = '';
-            
-            if (data.type === 'color') {
-                displayText = `Color<br>${data.color}`;
-                bgColor = data.color;
-            } else if (data.type === 'effect') {
-                displayText = `${data.effect}<br>Efecto`;
-                bgColor = rgbToHex(data.color.r, data.color.g, data.color.b);
-            }
-            
-            eventEl.style.background = bgColor;
-            eventEl.innerHTML = `
-                <span>${displayText}</span>
-                <button class="timeline-event-delete" onclick="removeTimelineEvent('${eventId}')">×</button>
-            `;
-            
-            eventEl.draggable = true;
-            eventEl.ondragstart = (e) => dragTimelineEvent(e, eventId);
-            
-            track.appendChild(eventEl);
-            
-            timelineEvents.push({
-                id: eventId,
-                ...data,
-                position: xPos
+            timelineEvents.forEach((event, index) => {
+                const eventEl = document.createElement('div');
+                eventEl.className = 'timeline-event';
+                eventEl.style.left = (event.time / 10) + 'px';
+                eventEl.style.background = event.type === 'color' 
+                    ? `rgb(${event.r}, ${event.g}, ${event.b})`
+                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                
+                eventEl.innerHTML = `
+                    <div style="width: 100%; text-align: center;">
+                        ${event.effectName || 'Color'}<br/>
+                        <small>${Math.round(event.time)}ms</small>
+                    </div>
+                    <button class="timeline-event-delete" onclick="removeTimelineEvent(${index})">×</button>
+                `;
+                
+                timelineTrackInner.appendChild(eventEl);
             });
         }
 
-        function dragTimelineEvent(event, eventId) {
-            event.dataTransfer.effectAllowed = 'move';
-            event.dataTransfer.setData('eventId', eventId);
+        function removeTimelineEvent(index) {
+            timelineEvents.splice(index, 1);
+            renderTimeline();
+            showNotification('🗑️ Evento eliminado', 'warning');
         }
 
-        function removeTimelineEvent(eventId) {
-            const el = document.getElementById(`event-${eventId}`);
-            if (el) el.remove();
-            timelineEvents = timelineEvents.filter(e => e.id != eventId);
+        function getCurrentTimelinePosition() {
+            return timelineEvents.length > 0 
+                ? Math.max(...timelineEvents.map(e => e.time)) + 2000 
+                : 0;
         }
 
-        // ==================== DESCARGA Y CARGA ====================
+        // ==================== FUNCIONES AUXILIARES ====================
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : { r: 255, g: 0, b: 0 };
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function applyColorFromPicker() {
+            const color = document.getElementById('colorPicker').value;
+            const rgb = hexToRgb(color);
+            
+            const colorPreview = document.getElementById('colorPreview');
+            colorPreview.style.background = color;
+            
+            const colorInfo = document.getElementById('colorInfo');
+            colorInfo.textContent = `RGB(${rgb.r}, ${rgb.g}, ${rgb.b}) - ${color.toUpperCase()}`;
+            
+            showNotification('🎨 Color actualizado', 'info');
+        }
+
+        function switchDevice(device) {
+            document.querySelectorAll('.device-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            currentDeviceId = device;
+            showNotification(`📱 Dispositivo: ${device.toUpperCase()}`, 'info');
+        }
+
         function downloadTimeline() {
+            if (timelineEvents.length === 0) {
+                showNotification('⚠️ No hay eventos para descargar', 'warning');
+                return;
+            }
+            
             const data = {
-                device: currentDeviceId,
-                timestamp: new Date().toISOString(),
+                version: '1.0',
+                metadata: {
+                    title: 'Mi Timeline',
+                    device: currentDeviceId,
+                    created: new Date().toISOString()
+                },
                 events: timelineEvents
             };
             
@@ -1291,12 +1175,10 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `timeline-${Date.now()}.json`;
-            document.body.appendChild(a);
+            a.download = `timeline_${Date.now()}.json`;
             a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showNotification('📥 Timeline descargado', 'success');
+            
+            showNotification('💾 Timeline descargado', 'success');
         }
 
         function uploadTimeline(event) {
@@ -1308,202 +1190,48 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     timelineEvents = data.events || [];
-                    currentDeviceId = data.device || 'capellan';
-                    
-                    const track = document.getElementById('timelineTrackInner');
-                    track.innerHTML = '';
-                    
-                    timelineEvents.forEach(event => {
-                        const eventEl = document.createElement('div');
-                        eventEl.className = 'timeline-event';
-                        eventEl.id = `event-${event.id}`;
-                        eventEl.style.left = event.position + 'px';
-                        
-                        let displayText = '';
-                        let bgColor = '';
-                        
-                        if (event.type === 'color') {
-                            displayText = `Color<br>${event.color}`;
-                            bgColor = event.color;
-                        } else {
-                            displayText = `${event.effect}<br>Efecto`;
-                            bgColor = rgbToHex(event.color.r, event.color.g, event.color.b);
-                        }
-                        
-                        eventEl.style.background = bgColor;
-                        eventEl.innerHTML = `
-                            <span>${displayText}</span>
-                            <button class="timeline-event-delete" onclick="removeTimelineEvent('${event.id}')">×</button>
-                        `;
-                        
-                        eventEl.draggable = true;
-                        eventEl.ondragstart = (e) => dragTimelineEvent(e, event.id);
-                        
-                        track.appendChild(eventEl);
-                    });
-                    
-                    showNotification('📤 Timeline cargado correctamente', 'success');
+                    renderTimeline();
+                    showNotification('📂 Timeline cargado correctamente', 'success');
                 } catch (error) {
-                    showNotification(`❌ Error al cargar el timeline: ${error.message}`, 'error');
+                    showNotification('❌ Error al cargar archivo', 'error');
                 }
             };
             reader.readAsText(file);
         }
 
-        // ==================== REPRODUCCIÓN DEL TIMELINE ====================
-        function playTimeline() {
-            if (timelineEvents.length === 0) {
-                showNotification('❌ No hay eventos en el timeline', 'warning');
-                return;
+        function uploadTimelineToESP() {
+            playTimelineOnDevice(timelineEvents);
+        }
+
+        function listTimelinesESP() {
+            showNotification('📋 Listando timelines...', 'info');
+        }
+
+        function deleteTimelineESP() {
+            showNotification('🗑️ Función no implementada', 'warning');
+        }
+
+        function runTimelineESP() {
+            playTimelineOnDevice(timelineEvents);
+        }
+
+        function deleteSelectedTimeline() {
+            showNotification('🗑️ Función no implementada', 'warning');
+        }
+
+        // ==================== INICIALIZACIÓN ====================
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTimeline();
+            applyColorFromPicker();
+            
+            // Generar preview de LEDs
+            const ledStripPreview = document.getElementById('ledStripPreview');
+            for (let i = 0; i < ledCount; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'led-dot';
+                ledStripPreview.appendChild(dot);
             }
-            
-            isPlaying = true;
-            currentTimelineIndex = 0;
-            playNextEvent();
-        }
-
-        function playNextEvent() {
-            if (!isPlaying || currentTimelineIndex >= timelineEvents.length) {
-                isPlaying = false;
-                return;
-            }
-            
-            const event = timelineEvents[currentTimelineIndex];
-            visualizeEffect(event);
-            
-            currentTimelineIndex++;
-            setTimeout(playNextEvent, 500);
-        }
-
-        function stopTimeline() {
-            isPlaying = false;
-        }
-
-        function visualizeEffect(event) {
-            const leds = document.querySelectorAll('.led-dot');
-            
-            if (event.type === 'color') {
-                const rgb = event.rgb;
-                const color = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-                leds.forEach(led => {
-                    led.style.color = color;
-                    led.style.background = color;
-                    led.classList.add('active');
-                });
-                document.getElementById('currentEffectDisplay').textContent = 'Color';
-                document.getElementById('effectColorDisplay').textContent = event.color;
-            } else if (event.type === 'effect') {
-                applyEffectVisualization(event.effect, event.color);
-            }
-        }
-
-        function applyEffectVisualization(effect, color) {
-            const leds = document.querySelectorAll('.led-dot');
-            const hex = rgbToHex(color.r, color.g, color.b);
-            const rgb = `rgb(${color.r}, ${color.g}, ${color.b})`;
-            
-            document.getElementById('currentEffectDisplay').textContent = effect;
-            document.getElementById('effectColorDisplay').textContent = hex;
-            
-            switch (effect) {
-                case 'FIRE':
-                    leds.forEach((led, i) => {
-                        const intensity = Math.sin(i / leds.length * Math.PI) * 0.5 + 0.5;
-                        led.style.opacity = intensity;
-                        led.style.color = rgb;
-                        led.style.background = rgb;
-                    });
-                    break;
-                case 'OCEAN':
-                    leds.forEach((led, i) => {
-                        const wave = Math.sin((i + Date.now() / 200) / 5) * 0.5 + 0.5;
-                        led.style.opacity = wave;
-                        led.style.color = rgb;
-                        led.style.background = rgb;
-                    });
-                    break;
-                case 'MATRIX':
-                    leds.forEach((led, i) => {
-                        if (Math.random() > 0.8) {
-                            led.style.color = rgb;
-                            led.style.background = rgb;
-                            led.classList.add('active');
-                        } else {
-                            led.classList.remove('active');
-                        }
-                    });
-                    break;
-                default:
-                    leds.forEach(led => {
-                        led.style.color = rgb;
-                        led.style.background = rgb;
-                        led.classList.add('active');
-                    });
-            }
-        }
-
-        // ==================== UTILIDADES ====================
-        function hexToRgb(hex) {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16)
-            } : { r: 255, g: 0, b: 0 };
-        }
-
-        function rgbToHex(r, g, b) {
-            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-        }
-
-        function updateColorInfo() {
-            const color = document.getElementById('colorPicker').value;
-            const rgb = hexToRgb(color);
-            document.getElementById('colorPreview').style.background = color;
-            document.getElementById('colorInfo').textContent = `RGB(${rgb.r}, ${rgb.g}, ${rgb.b}) - ${color}`;
-        }
-
-        function applyColorFromPicker() {
-            const color = document.getElementById('colorPicker').value;
-            const rgb = hexToRgb(color);
-            
-            const leds = document.querySelectorAll('.led-dot');
-            leds.forEach(led => {
-                led.style.color = color;
-                led.style.background = color;
-                led.classList.add('active');
-            });
-        }
-
-        function switchDevice(deviceId) {
-            currentDeviceId = deviceId;
-            
-            document.querySelectorAll('.device-tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            const ledCounts = {
-                'capellan': 60,
-                'staff': 120,
-                'poi': 60,
-                'wand': 150,
-                'multi': 200
-            };
-            
-            ledCount = ledCounts[deviceId] || 60;
-            initializeLEDPreview();
-        }
-
-        // ==================== EVENT LISTENERS ====================
-        document.getElementById('colorPicker').addEventListener('change', updateColorInfo);
-        document.getElementById('colorPicker').addEventListener('input', updateColorInfo);
-
-        // ==================== INICIAR APP ====================
-        window.addEventListener('load', initializeApp);
-
-        // Verificar soporte de Web Serial API
-        if (!navigator.serial) {
-            showNotification('⚠️ Web Serial API no soportada en tu navegador. Usa Chrome/Edge', 'warning');
-        }
+        });
     </script>
 </body>
 </html>
